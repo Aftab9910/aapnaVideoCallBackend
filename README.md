@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # Backend – Aapna Video Call App
 
 This is the **backend server** for the Aapna Video Call application. It handles API requests, socket connections, and database interactions.
