@@ -6,44 +6,56 @@ import cors from "cors";
 import userRoutes from "./routes/users.routes.js";
 import dotenv from "dotenv";
 
-dotenv.config(); // Load .env variables
-console.log(process.env.MONGO_URL); // should print your MongoDB URI
+dotenv.config();
 
 const app = express();
 const server = createServer(app);
-const io = connectToSocket(server);
+
+// socket connect
+connectToSocket(server);
 
 // PORT
 app.set("port", process.env.PORT || 8000);
 
-// Middlewares
-app.use(cors());
+// ================= CORS FIX =================
+app.use(cors({
+  origin: "*",   // allow all frontend domains
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization"]
+}));
+
+// handle preflight requests
+app.options("*", cors());
+
+// ================= BODY PARSER =================
 app.use(express.json({ limit: "40kb" }));
 app.use(express.urlencoded({ limit: "40kb", extended: true }));
 
-// ROOT ROUTE
+// ================= TEST ROUTE =================
 app.get("/", (req, res) => {
-  res.send("Server is running....");
+  res.send("Server is running...");
 });
 
-// API ROUTES
+// ================= API ROUTES =================
 app.use("/api/v1/users", userRoutes);
 
-// START SERVER FUNCTION
+// ================= START SERVER =================
 const start = async () => {
   try {
-    // Connect to MongoDB
-    const connectionDb = await mongoose.connect(process.env.MONGO_URL);
 
-    console.log(`MONGO Connected DB Host: ${connectionDb.connection.host}`);
+    const db = await mongoose.connect(process.env.MONGO_URL);
 
-    // Start server
+    console.log("MongoDB Connected:", db.connection.host);
+
     server.listen(app.get("port"), () => {
-      console.log(`LISTENING ON PORT ${app.get("port")}`);
+      console.log("Server running on port", app.get("port"));
     });
+
   } catch (err) {
-    console.error("MongoDB connection failed:", err);
+
+    console.error("DB connection error:", err);
     process.exit(1);
+
   }
 };
 
